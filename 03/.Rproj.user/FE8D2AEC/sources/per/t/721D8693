@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573923406343.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1134030686",
+    "id" : "721D8693",
+    "lastKnownWriteTime" : 1480722630,
+    "last_content_update" : 1480722630,
+    "path" : "~/school/san/hw/03/wine.csv",
+    "project_path" : "wine.csv",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

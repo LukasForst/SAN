@@ -1,0 +1,3 @@
+"0","  withinMatrix <- matrix(rowsVector, nrow = size)
+"
+"2","data length [196] is not a sub-multiple or multiple of the number of rows [13]"

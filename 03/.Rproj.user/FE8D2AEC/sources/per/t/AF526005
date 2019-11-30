@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573923156174.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3514945986",
+    "id" : "AF526005",
+    "lastKnownWriteTime" : 1480730997,
+    "last_content_update" : 1480730997,
+    "path" : "~/school/san/hw/03/wine_info.txt",
+    "project_path" : "wine_info.txt",
+    "properties" : {
+        "cursorPosition" : "47,0",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "text"
+}

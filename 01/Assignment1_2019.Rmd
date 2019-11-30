@@ -1,0 +1,278 @@
+---
+title: 'Assignment 1: Regression'
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+This is the first assignment of B4M36SAN in 2019.
+Write your solution directly into this document and submit it to BRUTE.
+The deadline is 28.10.2019.
+
+First of all go through the code and fill the missing part (0.5 points).
+
+```{r prepare, echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library("MASS") # Includes the B    oston dataset
+library("formula.tools") # Contains a helper function
+library("gam") # Generalized additive models
+
+
+testMeanSquareError = function(modelType, modelStruct, dataset) {
+  set.seed(7) # Set a fixed random seed for measurement replicability
+  
+  datasetSize <- nrow(dataset)
+  sampleSize <- floor(0.8 * datasetSize)
+  trainIndices <- sample(seq_len(datasetSize), size = sampleSize)
+  trainSet <- dataset[trainIndices, ]
+  testSet <- dataset[-trainIndices, ]
+  fit <- modelType(modelStruct, data = trainSet)
+  independentVariable <- formula.tools::lhs(modelStruct)
+  
+  predictions <- predict(fit, testSet)
+  groundTruth <- getElement(testSet, independentVariable)
+  MSE <- mean((groundTruth - predictions)^2)
+  MSE
+}
+```
+
+We will attempt to predict the `medv` variable in the Boston dataset using the `lstat` and `rm` variables.
+
+
+Example usage of the function, to estimate the error of a linear model:
+
+
+```{r}
+testMeanSquareError(lm, medv ~ lstat + rm, Boston)
+```
+
+Construct and measure the performance of the following models (include your code in this document, 2 points):
+
+## 1. The linear model above
+```{r}
+fit.lin=lm(medv~lstat+rm, Boston)
+summary(fit.lin)
+```
+```{r}
+testMeanSquareError(lm, medv ~ lstat + rm, Boston)
+```
+We can see that the simple linear model does not perform well since it explains only ~64% of the variance in the data.
+
+## 2. A model polynomial in one variable and linear in the other (Determine a suitable polynomial degree >= 2)
+### `lstat` feature for polynom.
+```{r}
+fit.21=lm(medv~poly(lstat, 2)+rm,data=Boston)
+summary(fit.21)
+```
+```{r}
+fit.31=lm(medv~poly(lstat, 3)+rm,data=Boston)
+summary(fit.31)
+```
+The `p-value` of 3rd polynom degree suggest that adding it to the model did not bring better results.
+Lets use `anova` to compare the models.
+```{r}
+anova(fit.21, fit.31)
+```
+
+In this, case `ANOVA` suggests, that the data expressed by the model with polynomial degree 3 is not so different from the quadratic model and the cubic model is not significantly better
+therefore we should probably use the quadratic one, but let's compare the MSEs first.
+```{r}
+testMeanSquareError(lm, medv~poly(lstat, 2)+rm, Boston)
+```
+
+```{r}
+testMeanSquareError(lm, medv~poly(lstat, 3)+rm, Boston)
+```
+When we compare the MSE, we get that the cubic model is worse than the quadratic one.
+
+
+### `rm` as polynomial part
+Lets apply directly the `anova` method to the models.
+```{r}
+fit.12=lm(medv~lstat+poly(rm,2),data=Boston)
+fit.13=lm(medv~lstat+poly(rm,3),data=Boston)
+anova(fit.12,fit.13)
+```
+Again, we can see that the qubic model is not significantly better, therefore we don't need to continue.
+
+However, let's compare `rm` and `lstat` models:
+```{r}
+summary(fit.12)
+```
+We can clearly see that the R-squared value is significantly better in the `poly(rm,2)` model than in the `poly(lstat,2)` model,
+therefore the first mentioned model expresses greater variance of data.
+Now, compare MSEs.
+```{r}
+testMeanSquareError(lm, medv ~ lstat + poly(rm, 2), Boston)
+```
+Again, as expected, we can see that the `rm` feature model is better because it has a lower MSE. (`23.15` vs. `26.95`).
+
+
+## 3. A model polynomial in both variables (Determine a suitable polynomial degrees >= 2)
+Simpliest model with both polynomial variables is following:
+```{r}
+fit.22=lm(medv~poly(lstat,2)+poly(rm,2),data=Boston)
+testMeanSquareError(lm, medv~poly(lstat,2)+poly(rm,2), Boston)
+```
+It has lower MSE than the models in the previous task and I will use at as a baseline for the next models.
+
+```{r}
+fit.23=lm(medv~poly(lstat,2)+poly(rm,3),data=Boston)
+anova(fit.22, fit.23)
+```
+Again, we can see that adding higher polynomial degree did not help to achieve better results
+and the `poly(rm, 3)` is not significantly better.
+```{r}
+fit.32=lm(medv~poly(lstat,3)+poly(rm,2),data=Boston)
+anova(fit.22, fit.32)
+```
+In this case, `p-value` is still above `0.05`, which suggests that the model with higher polynomial degree is not significantly better,but lets try to compare MSEs.
+
+```{r}
+testMeanSquareError(lm, medv~poly(lstat,3)+poly(rm,2), Boston)
+```
+Again, we can see that the model of degrees`2,2` is better than the model with higher degrees.
+
+## 4. A model polynomial in both variables that clearly overfits, but still try to keep the degrees as low as possible.
+We can overfit data when the model has the same degree as the number of unique points in the dataset so for example model
+`medv~poly(lstat,20)+poly(rm,2)` will surely overfits.
+```{r}
+testMeanSquareError(lm, medv~poly(lstat,20)+poly(rm,2), Boston)
+```
+However, some models start to overfit on the lower degrees.
+I went up from a minimal degree up to 20 and was observing the change in the MSE.
+
+It turned out that the model starts to overfit around the 17th degree of `rm`.
+```{r}
+testMeanSquareError(lm, medv~poly(lstat,12)+poly(rm,17), Boston)
+```
+Interestingly, the higher degree did not automatically mean higher overfitting (or at least on this dataset with the fixed seed). For example, a combination of 16 and 18 has smaller MSE than the 12, 17.
+```{r}
+testMeanSquareError(lm, medv~poly(lstat,16)+poly(rm,18), Boston)
+```
+
+## 5. A generalized additive model (gam) using natural spline for one variable and linear function for the other (Use the same degree as in 2.)
+```{r}
+gam.1ns=gam(medv~lstat+ns(rm,2), data=Boston)
+summary(gam.1ns)
+```
+Using only two degrees of freedom, it is possible to achieve better results than in the two degree polynomial.
+```{r}
+testMeanSquareError(gam, medv~lstat+ns(rm,2), Boston)
+```
+
+## 6. A generalized additive model (gam) using natural spline for both variables. (Use the same degrees as in 3)
+```{r}
+gam.22=gam(medv~ns(lstat,2)+ns(rm,2), data=Boston)
+summary(gam.22)
+```
+```{r}
+testMeanSquareError(gam, medv~ns(lstat,2)+ns(rm,2), Boston)
+```
+Although the natural splines has only two degrees of freedom, the model performs better than than the best polynomial model.
+
+
+## 7. A linear combination of natural splines in either variables (Determine a suitable degrees >= 2)
+While increasing degree of natural spline for `rm` feature, we can see, that the model is getting better up to 6th degree in contrast with the polynomial regression, when the model stopped getting better at 2nd degree.
+```{r}
+gam.23=gam(medv~ns(lstat,2)+ns(rm,3), data=Boston)
+gam.24=gam(medv~ns(lstat,2)+ns(rm,4), data=Boston)
+gam.25=gam(medv~ns(lstat,2)+ns(rm,5), data=Boston)
+gam.26=gam(medv~ns(lstat,2)+ns(rm,6), data=Boston)
+gam.27=gam(medv~ns(lstat,2)+ns(rm,7), data=Boston)
+
+anova(gam.22,gam.23,gam.24,gam.25,gam.26, gam.27, test="F")
+```
+```{r}
+testMeanSquareError(gam, medv~ns(lstat,2)+ns(rm,6), Boston)
+```
+As for now, this is the best fitting model.
+```{r}
+summary(gam.26)
+```
+
+```{r}
+gam.32=gam(medv~ns(lstat,3)+ns(rm,2), data=Boston)
+gam.42=gam(medv~ns(lstat,4)+ns(rm,2), data=Boston)
+gam.52=gam(medv~ns(lstat,5)+ns(rm,2), data=Boston)
+gam.62=gam(medv~ns(lstat,6)+ns(rm,2), data=Boston)
+
+anova(gam.22,gam.32, gam.42,gam.52,gam.62, test="F")
+```
+The best fitting one from the second sequence is `5,2`, lets see the MSE.
+```{r}
+testMeanSquareError(gam, medv~ns(lstat,5)+ns(rm,2),Boston)
+```
+as we can see, it is lower than the previous best model `2,6`. 
+We can continue in the testing, while taking as a baseline `2,6`
+```{r}
+gam.36=gam(medv~ns(lstat,3)+ns(rm,6), data=Boston)
+
+anova(gam.26,gam.36,test="F")
+```
+Higher degree `3,6` is not significantly better and the MSE just confirms that the model `2,6` is better than the `3,6`.
+```{r}
+testMeanSquareError(gam, medv~ns(lstat,3)+ns(rm,6), Boston)
+```
+
+## 8. Some other kind of model that you choose.
+Lets try to use smooting splines with default (4) degrees of freedom.
+```{r}
+gam.sm4=gam(medv~s(lstat,4)+s(rm,4), data = Boston)
+summary(gam.sm4)
+```
+The model suggest, that the relationsip is not linear, since both `p-values` of Anova for Nonparametric Effects are deeply bellow 0.05. 
+```{r}
+testMeanSquareError(gam,medv~s(lstat,4)+s(rm,4), Boston)
+```
+MSE is actually better than with the usage of natural splines and is actually the lowest, from all the tests in this homework.
+
+Lets try more degrees of freedom.
+```{r}
+gam.sm5=gam(medv~s(lstat,4)+s(rm,5), data = Boston)
+gam.sm55=gam(medv~s(lstat,5)+s(rm,5), data = Boston)
+gam.sm56=gam(medv~s(lstat,5)+s(rm,6), data = Boston)
+gam.sm57=gam(medv~s(lstat,5)+s(rm,7), data = Boston)
+anova(gam.sm4, gam.sm5, gam.sm55, gam.sm56, gam.sm57, test="F")
+```
+Anova suggests, that the `5,6` degrees of freedom for `rm` feature should improve the model.
+```{r}
+testMeanSquareError(gam,medv~s(lstat,5)+s(rm,6), Boston)
+```
+The MSE confirms that estimation and it is the best
+
+However, adding more degrees of freedom (more than `5,6`) do not improve the model anymore.
+```{r}
+gam.sm66=gam(medv~s(lstat,6)+s(rm,6), data = Boston)
+anova(gam.sm56, gam.sm66, test="F")
+```
+Optimal value is therefore `5,6` - this model with smoothing splines with its MSE value of `19.225` is the best model found.
+
+# Answer the following questions (write the answers into this document, 2.5 points):
+## 1. Which model had the best measured performance?
+The model with smoothing splines and `5,6` degrees of freedom with its MSE `19.225`.
+```{r}
+summary(gam.sm56)
+```
+
+
+## 2. Is the best model relatively simple or complicated among the other models? 
+Well, the model itself is relatively complicated because it uses smoothing splines.
+However, the polynomial model, which had the best performance among the other polynomial models, was relatively simple - it was only the quadratic polynomial.
+
+## 3. Did the GAM models perform better than the polynomial ones? Explain why you think it was or was not the case. 
+The GAM models did indeed perform better than the polynomial ones. I think that this performance enhancement was caused by the fact that the individual predictors and the dependent variable were not in a linear relationship, and therefore, GAM models were able to perform better since they can cope with it.
+
+## 4. For the models that did not perform well, give an explanation of why it was the case.
+The worst model in the comparison was the simple linear model. Its performance was poor, mainly because it is not flexible when the actual data are not linear.
+Another not-well performing models were models with the single variable as a polynomial. I think that this is the same case because using only a single polynomial lacks the flexibility the model needed. 
+
+## 5. Discuss briefly: What would change if we used cross-validation instead of a simple train/test measurement?
+We would have gained better precision in error estimate mainly because it would be more robust since cross-validation would iteratively use all data for testing. Thanks to the robustness of this method, our conclusions would be firmer.
+
+## 6. Is the difference between the best and the other models large? Is the difference statistically significant? Propose a method that works with an interval error estimate.
+
+I compared the models in the previous sections. Therefore, I think that it is not necessary to copy-paste the results here. To sum it up, the best fitting model has MSE `19.225 `, which is not so different from other models whose MSE was around the value of 20. To determine whether this is statistically significant, we should use a statistical test based on the interval error estimate, which would reduce the influence of the training/testing dataset to the model. 
+To do so, we can use a slightly modified cross-validation technique when we would measure the standard error for each validation set. This set of standard error values would have Student t-distribution, here we could use the t-test for identification whether the two models are significantly different.
+
+

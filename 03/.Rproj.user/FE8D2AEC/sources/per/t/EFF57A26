@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1573918918076.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2209242184",
+    "id" : "EFF57A26",
+    "lastKnownWriteTime" : 1574702367,
+    "last_content_update" : 1575106257215,
+    "path" : "~/school/san/hw/03/SAN_assignment_LDA.Rmd",
+    "project_path" : "SAN_assignment_LDA.Rmd",
+    "properties" : {
+        "cursorPosition" : "109,4",
+        "scrollLine" : "121"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

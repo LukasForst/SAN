@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1575106292994.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "658A912D",
+    "lastKnownWriteTime" : 1575125497,
+    "last_content_update" : 1575125497063,
+    "path" : "~/OneDrive/School/ing/1st/san/hw/04/dimensionality_reduction.Rmd",
+    "project_path" : "dimensionality_reduction.Rmd",
+    "properties" : {
+        "cursorPosition" : "88,31",
+        "last_setup_crc32" : "C147A12bb338d19",
+        "scrollLine" : "78"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
