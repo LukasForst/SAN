@@ -89,9 +89,6 @@ An expected result (for *k* = 5) should look similar (not necessarily exactly th
 ![Example output](graph_iso.pdf)
 
 ```{r}
-#ADD YOUR CODE HERE!
-#REMOVE eval=FALSE arguments
-
 #1.Determine the neighbors of each point (k-NN)
 library('FNN')
 k <- 5
@@ -135,9 +132,22 @@ fittsne <- tsne(mydata, k = 2)
 PlotPoints(fittsne, mylabels, mycolors)
 ```
 
+The lower bound for the `K` in k-nearest is 3, because when I used 2 nearest neighbors the graph has more than one connected component.
+
+Visual comparison for different k in the ISOMAP seemed to be insufficient, since the values from 3 to 8 did not show overal improvement.
+For example, using k = 3 has good separation of yellow words, on the other hand it mixed violet and red ones. 5 nearest neighbors on the other 
+hand separated red and violet pretty good, but the green and blue colors were mixed. The 9 neighbors performed really badly, it mixed a lot of colors togeather. However, there were no big differences in the ks between 3 and 8.
+
+Using the method descreibed bellow - classification accuracy - I decided to use k = 5 as my selected k.
+
+When visualy comparing the PCA, ISOMAP and t-SNE algorithms we can clearly see that the t-SNE is performing worse then the other two ones.
+The labels are mixed and the groups are very close to each other. On the other hand, the separation of blue labels is kind of better then the
+other algorithms.
+Between the PCA and ISOMAP, there is no big difference, but I would say that the ISOMAP performed slightly better and mainly because the separation of red and violet labels seems to be better.
+
 
 4. **Observe the effect of dimensionality reduction on a classiffication algorithm**. The supporting code in a function `Classify` performs training and testing of classification trees and gives the classification accuracy (percentage of correctly classified samples) as its result. Compare the accuracy of prediction on plain data, PCA, ISOMAP and t-SNE.
-```{r eval=FALSE}
+```{r}
 #classify ISOMAP
 accISOMAP <- Classify(as.data.frame(fit$points), mycolors$V1, 50)
 
@@ -152,4 +162,7 @@ print(paste("ISOMAP ACC:", mean(accISOMAP)))
 print(paste("PCA ACC:", mean(accPCA)))
 print(paste("t-SNE ACC:", mean(accTSNE)))
 ```
+Here we can see that the ISOMAP accuraccy is actually the best from all algorithms, this confirms my hypothesis described above, that this algorithms performed best on the given data set.
+Although I presumed that the difference is not that big, the direct comparision indicates that it is and the PCA is worse.
+The worst algorithm is the t-SNE which was suggested before, beause even visualy the labels separation is not great.
 
