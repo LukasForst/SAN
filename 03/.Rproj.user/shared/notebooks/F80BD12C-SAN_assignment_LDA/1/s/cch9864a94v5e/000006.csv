@@ -1,5 +1,0 @@
-"0","#compute LDA and return corresponding eigenvectors
-eigenLDA <- LDA(mydata, labels)
-"
-"2","Error in LDA(mydata, labels) : could not find function ""LDA""
-"
